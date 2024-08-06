@@ -1,3 +1,4 @@
 /faces_emotions_data/
 *.pkl
 *.pth
+fer2013.csv
