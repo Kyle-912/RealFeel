@@ -52,6 +52,7 @@ class VideoWidget(QWidget):
         self.cap = None
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
+        self.frame_count = 0  # Initialize frame counter
 
     def start_camera(self):
         # Start the camera
@@ -95,16 +96,19 @@ class VideoWidget(QWidget):
                     if label == "face":  # Check if the detected object is a face
                         color = (0, 255, 0)
                         cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                        
+
                         # Extract the face region
                         face = frame[int(y1):int(y2), int(x1):int(x2)]
                         if face.size > 0:
-                            face = self.preprocess_face(face)
-                            # Predict the emotion
-                            emotion_prediction = emotion_model.predict(face)
-                            emotion_label = emotion_labels[np.argmax(emotion_prediction)]
+                            # Only perform emotion detection every 10 frames
+                            if self.frame_count % 10 == 0:
+                                face = self.preprocess_face(face)
+                                # Predict the emotion
+                                emotion_prediction = emotion_model.predict(face)
+                                self.emotion_label = emotion_labels[np.argmax(emotion_prediction)]
+
                             # Display emotion label
-                            cv2.putText(frame, emotion_label, (int(x1), int(y1) - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                            cv2.putText(frame, self.emotion_label, (int(x1), int(y1) - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
             # Convert frame to QImage and display it
             rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -112,6 +116,9 @@ class VideoWidget(QWidget):
             bytes_per_line = ch * w
             convert_to_Qt_format = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
             self.image_label.setPixmap(QPixmap.fromImage(convert_to_Qt_format))
+
+            # Increment frame counter
+            self.frame_count += 1
 
     def closeEvent(self, event):
         # Ensure the camera is stopped when the window is closed
@@ -121,6 +128,9 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Real-time Face and Emotion Detection with YOLOv8")
+
+        # Set the initial size of the main window
+        self.resize(800, 600)
 
         # Set up the main video widget
         self.video_widget = VideoWidget()
