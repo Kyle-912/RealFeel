@@ -32,12 +32,12 @@ class VideoWidget(QWidget):
         # Create buttons for starting and stopping the camera
         self.start_button = QPushButton('Start Camera')
         self.start_button.setFont(QFont('Arial', 12, QFont.Bold))
-        self.start_button.setStyleSheet("background-color: #800080; color: white; padding: 10px; border-radius: 5px;")
+        self.start_button.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px; border-radius: 5px;")
         self.start_button.clicked.connect(self.start_camera)
 
         self.stop_button = QPushButton('Stop Camera')
         self.stop_button.setFont(QFont('Arial', 12, QFont.Bold))
-        self.stop_button.setStyleSheet("background-color: #800080; color: white; padding: 10px; border-radius: 5px;")
+        self.stop_button.setStyleSheet("background-color: #f44336; color: white; padding: 10px; border-radius: 5px;")
         self.stop_button.clicked.connect(self.stop_camera)
         self.stop_button.setEnabled(False)  # Disable the stop button initially
 
@@ -94,7 +94,7 @@ class VideoWidget(QWidget):
                     cls = int(box.cls[0])  # Class ID
                     label = facemodel.names[cls]
                     if label == "face":  # Check if the detected object is a face
-                        color = (0, 255, 0)
+                        color = (255, 255, 0)  # Cyan color for the face bounding box
                         cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
 
                         # Extract the face region
@@ -107,8 +107,14 @@ class VideoWidget(QWidget):
                                 emotion_prediction = emotion_model.predict(face)
                                 self.emotion_label = emotion_labels[np.argmax(emotion_prediction)]
 
-                            # Display emotion label
-                            cv2.putText(frame, self.emotion_label, (int(x1), int(y1) - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                            # Display emotion label with outline
+                            text_size, _ = cv2.getTextSize(self.emotion_label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                            text_w, text_h = text_size
+                            label_y = int(y1) - text_h - 20  # Raise the label position a bit higher
+                            if label_y < 0:  # Ensure the label is within the frame
+                                label_y = 0
+                            cv2.rectangle(frame, (int(x1), label_y), (int(x1) + text_w, label_y + text_h + 10), (0, 0, 0), -1)  # Background for better visibility
+                            cv2.putText(frame, self.emotion_label, (int(x1), label_y + text_h + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv2.LINE_AA)  # Text with outline
 
             # Convert frame to QImage and display it
             rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -157,16 +163,22 @@ class MainWindow(QMainWindow):
             QPushButton {
                 font-size: 14px;
                 padding: 10px;
-                background-color: #800080;
+                background-color: #4CAF50;
                 color: white;
                 border: none;
                 border-radius: 5px;
+            }
+            QPushButton#stop_button {
+                background-color: #f44336;
             }
             QPushButton:disabled {
                 background-color: #555555;
             }
             QPushButton:hover {
-                background-color: #9932CC;
+                background-color: #45a049;
+            }
+            QPushButton#stop_button:hover {
+                background-color: #d32f2f;
             }
             QStatusBar {
                 background-color: #333333;
