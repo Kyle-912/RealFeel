@@ -34,7 +34,7 @@ class BarGraphWidget(QWidget):
         self.setLayout(self.layout)
 
         # Define colors for each emotion
-        self.colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'cyan']
+        self.colors = ['red', 'green', 'purple', 'yellow', 'blue', 'orange', 'cyan']
 
     def update_graph(self, data):
         self.ax.clear()
